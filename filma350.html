@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Filma350</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            min-height: 100vh;
+            /* Add a blurred pseudo-element for the background image */
+            position: relative;
+            color: #fff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            /* Remove background image from here */
+            background: none;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+            background: url('https://cdn.mos.cms.futurecdn.net/rDJegQJaCyGaYysj2g5XWY.jpg') no-repeat center center fixed;
+            background-size: cover;
+            filter: blur(8px) brightness(0.7);
+        }
+
+        /* --- Search bar: more distinctive --- */
+        #search-input {
+            position: static; /* Remove absolute positioning */
+            display: block;
+            margin: 0 auto; /* Center horizontally */
+            padding: 0.7rem 2.7rem 0.7rem 1.3rem;
+            border-radius: 32px;
+            border: none;
+            font-size: 1.13rem;
+            width: 50px;
+            background: linear-gradient(90deg, #fffbe6 0%, #ffe066 70%, #fffbe6 100%);
+            color: #e50914;
+            font-weight: bold;
+            box-shadow: 0 4px 24px #e5091440, 0 2px 12px #0003;
+            outline: none;
+            transition: box-shadow 0.2s, background 0.2s, color 0.2s;
+            letter-spacing: 1px;
+            border: 2px solid #e50914;
+        }
+        #search-input:focus {
+            box-shadow: 0 6px 32px #e50914aa, 0 2px 12px #0003;
+            background: linear-gradient(90deg,#ffe066 0%,#fffbe6 100%);
+            color: #181818;
+            border-color: #ffe066;
+        }
+        #search-input::placeholder {
+            color: #e50914;
+            opacity: 1;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        /* --- Beautiful Category Buttons --- */
+        #category-dropdown {
+            position:relative;
+            text-align:center;
+            margin-top:3.5rem;
+            margin-bottom:2.2rem;
+        }
+        #category-toggle {
+            background: linear-gradient(90deg, #232323 60%, #ffe066 100%);
+            color: #e50914;
+            border: none;
+            padding: 1.1rem 2.7rem;
+            border-radius: 38px;
+            cursor: pointer;
+            font-size: 1.35rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            box-shadow: 0 6px 24px #0003, 0 2px 12px #0002;
+            outline: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 1em;
+            position: relative;
+            transition:
+                background 0.25s,
+                color 0.2s,
+                transform 0.18s,
+                box-shadow 0.22s;
+            animation: catFadeIn 1s cubic-bezier(.68,-0.55,.27,1.55);
+        }
+        #cat-arrow {
+            font-size: 2em;
+            margin-right: 0.5em;
+            transition: transform 0.3s;
+        }
+        #category-menu {
+            display:none;
+            position:absolute;
+            left:50%; transform:translateX(-50%);
+            top:110%;
+            background:rgba(24,24,24,0.98);
+            border-radius:24px;
+            box-shadow:0 8px 32px #e5091440, 0 2px 12px #0003;
+            padding:1.2rem 2.2rem;
+            min-width:260px;
+            z-index:100;
+            animation: dropdownPop 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+        }
+        .category-btn {
+            background: linear-gradient(90deg, #232323 60%, var(--cat-color) 100%);
+            color: #ececec;
+            border: none;
+            padding: 0.45rem 1.1rem;
+            font-size: 0.92rem;
+            border-radius: 18px;
+            margin: 0.25rem 0;
+            font-weight: 600;
+            letter-spacing: 2px;
+            box-shadow: 0 6px 24px #0006, 0 2px 12px #0002;
+            outline: none;
+            display: flex;
+            align-items: center;
+            gap: 1em;
+            position: relative;
+            overflow: hidden;
+            transition:
+                background 0.25s,
+                color 0.2s,
+                transform 0.18s,
+                box-shadow 0.22s;
+            animation: catFadeIn 1s cubic-bezier(.68,-0.55,.27,1.55);
+            text-transform: uppercase;
+        }
+        .category-btn.active, .category-btn:hover {
+            background: linear-gradient(90deg, var(--cat-color) 0%, #232323 100%);
+            color: #302c2b3d;
+            transform: translateY(-4px) scale(1.07);
+            box-shadow: 0 12px 36px var(--cat-color), 0 2px 12px rgba(0, 0, 0, 0);
+        }
+        .category-btn.active .cat-icon, .category-btn:hover .cat-icon {
+            transform: scale(1.15) rotate(-8deg);
+            filter: grayscale(0) brightness(1.3);
+        }
+        .category-btn.active .cat-text, .category-btn:hover .cat-text {
+            color: var(--cat-color);
+        }
+        /* Adult-like category colors */
+        .category-btn[onclick*="All"]      { --cat-color: #444; }
+        .category-btn[onclick*="Horror"]   { --cat-color: #8b1a1a; }
+        .category-btn[onclick*="Action"]   { --cat-color: #1a3c6b; }
+        .category-btn[onclick*="Comedy"]   { --cat-color: #bfa34a; }
+        .category-btn[onclick*="Animation"]{ --cat-color: #4a4abf; }
+
+        .cat-icon {
+            font-size: 1em;
+        }
+        .cat-text {
+            font-size: 0.95em;
+        }
+        @media (max-width: 600px) {
+            .category-btn {
+                font-size: 0.92rem;
+                padding: 0.5rem 0.7rem;
+                border-radius: 18px;
+            }
+            .cat-icon {
+                font-size: 1em;
+            }
+        }
+
+        .movies {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            padding: 2rem;
+        }
+        .movie-card {
+            background: #232323;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            width: 260px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .movie-card:hover {
+            transform: scale(1.04);
+        }
+        .movie-card img {
+            width: 100%;
+            height: 370px;
+            object-fit: cover;
+        }
+        .movie-info {
+            padding: 1rem;
+        }
+        .movie-title {
+            font-size: 1.2rem;
+            margin: 0 0 0.5rem 0;
+        }
+        .movie-genre {
+            font-size: 0.95rem;
+            color: #e50914;
+            margin-bottom: 0.5rem;
+        }
+        .movie-desc {
+            font-size: 0.95rem;
+            color: #ccc;
+        }
+        .play-btn {
+            display: block;
+            width: 100%;
+            margin: 1rem 0 0 0;
+            padding: 0.6rem 0;
+            background: #e50914;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .play-btn:hover {
+            background: #b00610;
+        }
+        #movie-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(20,20,20,0.93);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        #modal-content {
+            background: linear-gradient(135deg,#232323 80%,#e50914 120%);
+            border-radius: 18px;
+            max-width: 95vw;
+            width: 420px;
+            padding: 2rem 1.5rem 1.5rem 1.5rem;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 8px 32px #000a;
+        }
+        #modal-content button {
+            position: absolute;
+            top: 14px;
+            left: 18px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #modal-img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 12px #0006;
+        }
+        @media (max-width: 700px) {
+            .movies {
+                flex-direction: column;
+                align-items: center;
+                padding: 1rem;
+            }
+            .movie-card {
+                width: 90vw;
+            }
+        }
+
+        /* Floating Discord button */
+        #discord-float {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 2000;
+            background: linear-gradient(90deg, #5865F2 60%, #23272A 100%);
+            color: #fff;
+            padding: 1rem 2.1rem 1rem 2.7rem;
+            border-radius: 32px 12px 32px 12px;
+            font-size: 1.18rem;
+            font-weight: bold;
+            box-shadow: 0 4px 24px #5865f299, 0 2px 12px #0003;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: transform 0.15s, box-shadow 0.2s;
+        }
+        #discord-float:hover {
+            transform: scale(1.07);
+            box-shadow: 0 8px 32px #5865f2cc, 0 2px 12px #0003;
+        }
+
+        /* Add this CSS in your <style> tag for hamburger animation */
+        #menu-toggle {
+            transition: transform 0.25s cubic-bezier(.68,-0.55,.27,1.55);
+        }
+        #menu-toggle.animated {
+            transform: rotate(90deg) scale(1.15);
+        }
+        #side-menu {
+            transition: transform 0.3s cubic-bezier(.68,-0.55,.27,1.55), opacity 0.2s;
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        #side-menu.open {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        /* Animation for the logo on hover */
+        .logo-animate {
+            display: inline-block;
+            font-size: 3rem;
+            letter-spacing: 3px;
+            font-weight: bold;
+            margin-bottom: 0.2em;
+            background: linear-gradient(90deg, #ffe066 30%, #e50914 70%, #23d997 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 2px 4px 12px #000a, 0 2px 0 #fff3;
+            transition: transform 0.5s cubic-bezier(.68,-0.55,.27,1.55), text-shadow 0.5s;
+            will-change: filter, transform;
+            cursor: pointer;
+            position: relative;
+        }
+        .logo-fimg img {
+            display: inline-block;
+            filter: grayscale(1) brightness(1.15) drop-shadow(0 2px 8px #0002);
+            border-radius: 50%;
+            /* The transform is already inline for best browser support */
+        }
+        .logo-text {
+            background: inherit;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            transition: filter 0.4s;
+            display: inline-block;
+        }
+        @keyframes logoWave {
+            0% { letter-spacing: 3px; filter: hue-rotate(0deg) brightness(1); transform: scale(1) rotate(0deg);}
+            20% { letter-spacing: 8px; filter: hue-rotate(60deg) brightness(1.2); transform: scale(1.08) rotate(-3deg);}
+            40% { letter-spacing: 3px; filter: hue-rotate(120deg) brightness(1.1); transform: scale(1.04) rotate(2deg);}
+            60% { letter-spacing: 8px; filter: hue-rotate(180deg) brightness(1.2); transform: scale(1.12) rotate(-2deg);}
+            80% { letter-spacing: 3px; filter: hue-rotate(240deg) brightness(1.1); transform: scale(1.06) rotate(2deg);}
+            100% { letter-spacing: 3px; filter: hue-rotate(360deg) brightness(1); transform: scale(1) rotate(0deg);}
+        }
+        @keyframes popcornJump {
+            0% { transform: translateY(0) scale(1);}
+            10% { transform: translateY(-18px) scale(1.18);}
+            20% { transform: translateY(0) scale(1);}
+            100% { transform: translateY(0) scale(1);}
+        }
+
+        @keyframes promoPop {
+            0% { opacity: 0; transform: translateY(-10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes iconWave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        @keyframes textWave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        @keyframes promoBounce {
+            0% { opacity: 0; transform: scale(0.7) translateY(-30px);}
+            60% { opacity: 1; transform: scale(1.08) translateY(8px);}
+            100% { opacity: 1; transform: scale(1) translateY(0);}
+        }
+        @keyframes iconBounce {
+            0%,100% { transform: translateY(0);}
+            50% { transform: translateY(-12px);}
+        }
+        @keyframes textBounce {
+            0%,100% { transform: translateY(0);}
+            50% { transform: translateY(-6px);}
+        }
+        /* Make category buttons thinner and narrower */
+.category-btn {
+    padding: 0.45rem 1.1rem;
+    font-size: 0.92rem;
+    border-radius: 18px;
+    margin: 0.25rem 0;
+}
+.cat-icon {
+    font-size: 1em;
+}
+.cat-text {
+    font-size: 0.95em;
+}
+@media (max-width: 600px) {
+    .category-btn {
+        font-size: 0.92rem;
+        padding: 0.5rem 0.7rem;
+        border-radius: 18px;
+    }
+    .cat-icon {
+        font-size: 1em;
+    }
+}
+    </style>
+</head>
+<body>
+    <div id="welcome-overlay" style="
+        position:fixed;
+        top:0; left:0; width:100vw; height:100vh;
+        background:rgba(24,24,24,0.98);
+        z-index:9999;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        flex-direction:column;
+        transition:opacity 0.7s;
+        opacity:1;
+    ">
+        <div style="
+            text-align:center;
+            animation: welcomePop 1.2s cubic-bezier(.68,-0.55,.27,1.55);
+        ">
+            <span style="font-size:3.5rem; filter:grayscale(1);">🍿</span>
+            <h1 style="
+                font-size:2.7rem;
+                margin:0.5em 0 0.2em 0;
+                background: linear-gradient(90deg, #ffe066 30%, #e50914 70%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                color: transparent;
+                letter-spacing:2px;
+                font-weight:bold;
+                text-shadow: 0 4px 24px #000a;
+            ">Mirësevini në Filma350</h1>
+            <p style="color:#ffe066;font-size:1.25rem;margin-bottom:1.5em;">Shijo filmat më të mirë!</p>
+            <div style="margin-top:1.5em;">
+                <button id="welcome-btn" style="
+                    padding:0.8em 2.5em;
+                    font-size:1.2rem;
+                    border-radius:24px;
+                    border:none;
+                    background:#e50914;
+                    color:#fff;
+                    font-weight:bold;
+                    cursor:pointer;
+                    box-shadow:0 4px 18px #e5091440;
+                    transition:background 0.2s,transform 0.18s;
+                ">Hyr në faqe</button>
+            </div>
+        </div>
+    </div>
+    <header>
+        <h1 id="main-logo" style="margin-bottom:0; position:relative;">
+        <span style="
+            position:absolute;
+            left:0; top:0;
+            width:330px; height:100%;
+            pointer-events:none;
+            z-index:1;
+        ">
+            <!-- Light effect behind the logo -->
+            <span style="
+                position:absolute;
+                left:50%; top:50%;
+                transform:translate(-50%,-50%);
+                width:340px; height:180px;
+                background: radial-gradient(circle at 50% 50%, #ffe06688 0%, #e5091440 60%, transparent 100%);
+                filter: blur(18px);
+                opacity: 0.7;
+                z-index:1;
+            "></span>
+        </span>
+            <img src="filma350.png"
+                alt="Filma350 Logo"
+                style="height:auto;width:330px;display:inline-block;vertical-align:middle;filter:drop-shadow(0 2px 12px #0008);border-radius:16px;position:relative;top:-32px;z-index:2;">
+    </h1>
+        <div style="display: flex; justify-content: center; margin-top: 2.2rem; margin-bottom: 0.5rem;">
+            <input 
+                type="text" 
+                id="search-input" 
+                placeholder="🔍 Search movies..." 
+                style="
+                    padding:0.6rem 2.5rem 0.6rem 1.2rem; 
+                    border-radius: 30px; 
+                    border: none; 
+                    font-size: 1.08rem; 
+                    width: 320px; 
+                    background: linear-gradient(90deg, #232323 60%, #ffe066 100%);
+                    color: #222;
+                    box-shadow: 0 2px 12px #0003;
+                    outline: none;
+                    transition: box-shadow 0.2s, background 0.2s;
+                    text-align: left;
+                "
+                onfocus="this.style.boxShadow='0 4px 18px #e5091466'; this.style.background='linear-gradient(90deg,#fffbe6 60%,#ffe066 100%)';"
+                onblur="this.style.boxShadow='0 2px 12px #0003'; this.style.background='linear-gradient(90deg, #232323 60%, #ffe066 100%)';"
+                oninput="searchMovies()"
+            >
+        </div>
+    </header>
+    <div id="menu-toggle" style="position: absolute; top: 2.2rem; right: 2.2rem; z-index: 3000; cursor: pointer;">
+        <div style="width: 32px; height: 4px; background: #ffe066; margin: 6px 0; border-radius: 2px;"></div>
+        <div style="width: 32px; height: 4px; background: #ffe066; margin: 6px 0; border-radius: 2px;"></div>
+        <div style="width: 32px; height: 4px; background: #ffe066; margin: 6px 0; border-radius: 2px;"></div>
+    </div>
+    <div id="side-menu" style="
+        display: none;
+        position: fixed;
+        top: 0; right: 0; height: 100vh; width: 270px;
+        background: linear-gradient(120deg, #181818 0%, #232323 40%, #e50914 100%);
+        color: #fff;
+        z-index: 4000;
+        box-shadow: -4px 0 24px #000a;
+        padding: 2.5rem 1.5rem 1.5rem 1.5rem;
+        transition: transform 0.2s;
+    ">
+        <button onclick="closeMenu()" style="position:absolute;top:18px;right:18px;background:none;border:none;color:#ffe066;font-size:2rem;cursor:pointer;">&times;</button>
+        
+        <div style="margin-top:2.2rem; color:#ffe066b0; font-size:0.98rem;">
+         
+        </div>
+        <!-- Add this inside your #side-menu, after the theme section, for the Favorites box: -->
+        <div style="margin-top:2.5rem;">
+            <h3 style="color:#ffe066;">Favorites</h3>
+            <button onclick="toggleFavBox()" style="margin:0.7rem 0 0.7rem 0; padding:0.6rem 1.5rem; border-radius:18px; border:none; background:#ffe066; color:#e50914; font-weight:bold; font-size:1rem; cursor:pointer; width:100%;">
+                ❤️ Show Favorites
+            </button>
+        </div>
+        <div id="fav-box" style="
+            display: none;
+            position: fixed;
+            top: 60px;
+            right: 300px;
+            z-index: 4100;
+            background: linear-gradient(120deg, #fffbe6 60%, #ffe066 100%);
+            color: #181818;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px #e5091440, 0 2px 12px #0003;
+            padding: 1.2rem 1.5rem 1.2rem 1.5rem;
+            min-width: 260px;
+            max-width: 90vw;
+        ">
+            <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 0.7rem; color: #e50914;">
+                ❤️ Your Favorites
+                <button onclick="toggleFavBox()" style="float:right;background:none;border:none;font-size:1.3rem;color:#e50914;cursor:pointer;">&times;</button>
+            </div>
+            <div id="fav-list" style="max-height: 260px; overflow-y: auto;"></div>
+            <div id="fav-empty" style="color:#888; font-size:0.98rem; margin-top:0.7rem;">No favorites yet.</div>
+        </div>
+        <div id="auth-section"></div>
+    </div>
+    <!-- Replace your <nav> block with this advanced animated dropdown menu -->
+    <div id="category-dropdown" style="
+        position: absolute;
+        top: 38px;
+        left: 360px;
+        text-align: left;
+        margin-top: 0;
+        margin-bottom: 0;
+        z-index: 100;
+    ">
+        <button id="category-toggle" style="
+            background: linear-gradient(90deg, #232323 60%, #ffe066 100%);
+            color: #e50914;
+            border: none;
+            padding: 1.1rem 2.7rem;
+            border-radius: 38px;
+            cursor: pointer;
+            font-size: 1.35rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            box-shadow: 0 6px 24px #0003, 0 2px 12px #0002;
+            outline: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 1em;
+            position: relative;
+            transition:
+                background 0.25s,
+                color 0.2s,
+                transform 0.18s,
+                box-shadow 0.22s;
+            animation: catFadeIn 1s cubic-bezier(.68,-0.55,.27,1.55);
+        ">
+            <span style="font-size:2em; margin-right:0.5em; transition:transform 0.3s;" id="cat-arrow">▶</span>
+            <span style="font-size:1.1em; font-weight:600;">Categories</span>
+        </button>
+        <!-- Replace your #category-menu block with this more advanced/adult style -->
+        <div id="category-menu" style="
+            display:none;
+            position:absolute;
+            left:0;
+            top:110%;
+            background:rgba(24,24,24,0.98);
+            border-radius:24px;
+            box-shadow:0 8px 32px #e5091440, 0 2px 12px #0003;
+            padding:1.2rem 2.2rem;
+            min-width:260px;
+            z-index:100;
+            animation: dropdownPop 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+        ">
+            <button class="category-btn active" onclick="filterMovies('All')" style="--cat-color:#444;">
+                <span class="cat-icon" style="font-size:1.5em;">★</span>
+                <span class="cat-text" style="font-size:1.15em;">All Genres</span>
+            </button>
+            <button class="category-btn" onclick="filterMovies('Horror')" style="--cat-color:#b00610;">
+                <span class="cat-icon" style="font-size:1.5em;">🩸</span>
+                <span class="cat-text" style="font-size:1.15em;">Horror</span>
+            </button>
+            <button class="category-btn" onclick="filterMovies('Action')" style="--cat-color:#e50914;">
+                <span class="cat-icon" style="font-size:1.5em;">🔫</span>
+                <span class="cat-text" style="font-size:1.15em;">Action</span>
+            </button>
+            <button class="category-btn" onclick="filterMovies('Comedy')" style="--cat-color:#ffe066;">
+                <span class="cat-icon" style="font-size:1.5em;">🥃</span>
+                <span class="cat-text" style="font-size:1.15em;">Comedy</span>
+            </button>
+            <button class="category-btn" onclick="filterMovies('Animation')" style="--cat-color:#5865F2;">
+                <span class="cat-icon" style="font-size:1.5em;">🎞️</span>
+                <span class="cat-text" style="font-size:1.15em;">Animation</span>
+            </button>
+        </div>
+    </div>
+    <style>
+        .category-btn {
+            background: linear-gradient(90deg, #232323 60%, var(--cat-color) 100%);
+            color: #ececec;
+            border: none;
+            padding: 0.45rem 1.1rem;
+            font-size: 0.92rem;
+            border-radius: 18px;
+            margin: 0.25rem 0;
+            font-weight: 600;
+            letter-spacing: 2px;
+            box-shadow: 0 6px 24px #0006, 0 2px 12px #0002;
+            outline: none;
+            display: flex;
+            align-items: center;
+            gap: 1em;
+            position: relative;
+            overflow: hidden;
+            transition:
+                background 0.25s,
+                color 0.2s,
+                transform 0.18s,
+                box-shadow 0.22s;
+            animation: catFadeIn 1s cubic-bezier(.68,-0.55,.27,1.55);
+            text-transform: uppercase;
+        }
+        .category-btn.active, .category-btn:hover {
+            background: linear-gradient(90deg, var(--cat-color) 0%, #232323 100%);
+            color: #ffe066;
+            transform: translateY(-4px) scale(1.07);
+            box-shadow: 0 12px 36px var(--cat-color), 0 2px 12px #0003;
+        }
+        .category-btn.active .cat-icon, .category-btn:hover .cat-icon {
+            transform: scale(1.15) rotate(-8deg);
+            filter: grayscale(0) brightness(1.3);
+        }
+        .category-btn.active .cat-text, .category-btn:hover .cat-text {
+            color: var(--cat-color);
+        }
+        /* Adult-like category colors */
+        .category-btn[onclick*="All"]      { --cat-color: #444; }
+        .category-btn[onclick*="Horror"]   { --cat-color: #8b1a1a; }
+        .category-btn[onclick*="Action"]   { --cat-color: #1a3c6b; }
+        .category-btn[onclick*="Comedy"]   { --cat-color: #bfa34a; }
+        .category-btn[onclick*="Animation"]{ --cat-color: #4a4abf; }
+
+        .cat-icon {
+            font-size: 1em;
+        }
+        .cat-text {
+            font-size: 0.95em;
+        }
+        @media (max-width: 600px) {
+            .category-btn {
+                font-size: 0.92rem;
+                padding: 0.5rem 0.7rem;
+                border-radius: 18px;
+            }
+            .cat-icon {
+                font-size: 1em;
+            }
+        }
+    </style>
+    <script>
+        document.getElementById('category-toggle').onclick = function() {
+    const menu = document.getElementById('category-menu');
+    const arrow = document.getElementById('cat-arrow');
+    if (menu.style.display === 'block') {
+        menu.style.display = 'none';
+        arrow.style.transform = 'rotate(0deg)';
+    } else {
+        menu.style.display = 'block';
+        arrow.style.transform = 'rotate(90deg)';
+    }
+};
+// Hide dropdown if clicked outside
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('category-menu');
+    const toggle = document.getElementById('category-toggle');
+    if (menu.style.display === 'block' && !menu.contains(e.target) && !toggle.contains(e.target)) {
+        menu.style.display = 'none';
+        document.getElementById('cat-arrow').style.transform = 'rotate(0deg)';
+    }
+});
+// Update active button on filter
+function filterMovies(genre) {
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    const btn = Array.from(document.querySelectorAll('.category-btn')).find(b => b.textContent.trim().includes(genre));
+    if (btn) btn.classList.add('active');
+    renderMovies(genre);
+    document.getElementById('category-menu').style.display = 'none';
+    document.getElementById('cat-arrow').style.transform = 'rotate(0deg)';
+}
+    </script>
+    <section class="movies" id="movies-list"></section>
+
+    <div id="movie-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(20,20,20,0.93); z-index:1000; align-items:center; justify-content:center;">
+        <div id="modal-content" style="background:linear-gradient(135deg,#232323 80%,#e50914 120%); border-radius:18px; max-width:95vw; width:420px; padding:2rem 1.5rem 1.5rem 1.5rem; text-align:center; position:relative; box-shadow:0 8px 32px #000a;">
+            <!-- X button on the left -->
+            <button onclick="closeModal()" id="modal-close-btn" style="position:absolute; top:14px; left:18px; background:none; border:none; color:#fff; font-size:2rem; cursor:pointer; font-weight:bold; z-index:10;">
+                &times;
+                <div style="font-size:0.9rem; color:#ffe066; font-weight:normal; display:block;">Exit</div>
+            </button>
+            <img id="modal-img" src="" alt="" style="width:100%; border-radius:12px; margin-bottom:1rem; box-shadow:0 2px 12px #0006;">
+            <h2 id="modal-title" style="margin:0 0 0.5rem 0; font-size:1.5rem; color:#ffe066; letter-spacing:1px;"></h2>
+            <div id="modal-location" style="color:#ffe066;font-size:1.05rem;margin-bottom:0.7em;"></div>
+            <p id="modal-desc" style="color:#fff; font-size:1.05rem; margin-bottom:1.2rem;"></p>
+            <video id="modal-video" style="display:none; width:100%; border-radius:10px; margin-bottom:1rem; background:#000;" controls></video>
+            <iframe id="modal-yt" style="display:none; width:100%; aspect-ratio:16/9; border-radius:10px; border:none; margin-bottom:1rem; background:#000;" allowfullscreen></iframe>
+        </div>
+    </div>
+    <a href="https://discord.gg/J6xd5ZQgc4"
+       target="_blank"
+       id="discord-float"
+       style="
+           position: fixed;
+           bottom: 32px;
+           right: 32px;
+           z-index: 2000;
+           background: linear-gradient(90deg, #5865F2 60%, #23272A 100%);
+           color: #fff;
+           padding: 1rem 2.1rem 1rem 2.7rem;
+           border-radius: 32px 12px 32px 12px;
+           font-size: 1.18rem;
+           font-weight: bold;
+           box-shadow: 0 4px 24px #5865f299, 0 2px 12px #0003;
+           text-decoration: none;
+           display: flex;
+           align-items: center;
+           gap: 0.8rem;
+           transition: transform 0.15s, box-shadow 0.2s;
+       "
+       onmouseover="this.style.transform='scale(1.07)'; this.style.boxShadow='0 8px 32px #5865f2cc, 0 2px 12px #0003';"
+       onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 24px #5865f299, 0 2px 12px #0003';"
+    >
+        <img src="https://cdn.jsdelivr.net/gh/edent/SuperTinyIcons/images/svg/discord.svg"
+             alt="Discord" style="height: 2rem; width: 2rem; margin-left: -1.2rem; margin-right: 0.5rem; vertical-align: middle;">
+        Join our Discord
+    </a>
+    <div id="auth-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(24,24,24,0.97); z-index:99999; align-items:center; justify-content:center;">
+        <form id="auth-form" style="background:#232323; padding:2em 2.5em; border-radius:18px; box-shadow:0 4px 24px #000a; text-align:center; min-width:260px;">
+            <h2 id="auth-title" style="color:#ffe066; margin-bottom:1em;">Login</h2>
+            <input id="auth-user" type="text" placeholder="Username" required style="margin-bottom:1em; width:90%; padding:0.7em; border-radius:8px; border:none; font-size:1.1em;"><br>
+            <input id="auth-pass" type="password" placeholder="Password" required style="margin-bottom:1em; width:90%; padding:0.7em; border-radius:8px; border:none; font-size:1.1em;"><br>
+            <button type="submit" style="padding:0.7em 2em; border-radius:12px; border:none; background:#e50914; color:#fff; font-weight:bold; font-size:1em; cursor:pointer;">Submit</button>
+            <button type="button" onclick="closeAuth()" style="margin-left:1em; padding:0.7em 1.5em; border-radius:12px; border:none; background:#ffe066; color:#e50914; font-weight:bold; font-size:1em; cursor:pointer;">Cancel</button>
+            <div id="auth-msg" style="color:#ffe066; margin-top:1em; min-height:1.5em;"></div>
+        </form>
+    </div>
+    <!-- Add this just above <nav> (after #side-menu) for the profile modal -->
+    <div id="profile-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(24,24,24,0.97); z-index:99999; align-items:center; justify-content:center;">
+        <div style="background:#232323; padding:2em 2.5em; border-radius:18px; box-shadow:0 4px 24px #000a; text-align:center; min-width:260px; position:relative;">
+            <button onclick="closeProfile()" style="position:absolute;top:12px;right:18px;background:none;border:none;color:#ffe066;font-size:2rem;cursor:pointer;">&times;</button>
+            <div style="margin-bottom:1.2em;">
+                <label for="profile-pic-input" style="cursor:pointer;">
+                    <img id="profile-pic" src="https://ui-avatars.com/api/?name=User&background=ffe066&color=e50914&rounded=true&size=128" alt="Profile" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #ffe066;">
+                    <input id="profile-pic-input" type="file" accept="image/*" style="display:none;">
+                </label>
+            </div>
+            <div style="color:#ffe066;font-size:1.2em;font-weight:bold;margin-bottom:1em;" id="profile-username"></div>
+            <button onclick="signOut()" style="padding:0.7em 2em; border-radius:12px; border:none; background:#e50914; color:#fff; font-weight:bold; font-size:1em; cursor:pointer;">Sign Out</button>
+        </div>
+    </div>
+    <!-- Place this promo banner just after <header> and before <nav> for a centered, top-middle position -->
+    <div id="promo-banner" style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 2.5rem auto 0 auto;
+        padding: 2.2rem 2.5rem;
+        max-width: 420px;
+        background: linear-gradient(120deg, #ffe066 60%, #e50914 100%);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px #e5091440, 0 2px 12px #0003;
+        animation: promoBounce 1.2s cubic-bezier(.68,-0.55,.27,1.55);
+        position: relative;
+        z-index: 10;
+    ">
+        <img src="https://cdn.jsdelivr.net/gh/edent/SuperTinyIcons/images/svg/twitter.svg"
+             alt="Twitter" style="height: 54px; width: 54px; margin-bottom: 1.2rem; animation: iconWave 2s infinite;">
+        <h2 style="
+            color: #e50914;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.7rem;
+            letter-spacing: 2px;
+            animation: textWave 2.5s infinite;
+        ">
+            Follow us on Twitter!
+        </h2>
+        <p style="color:#232323;font-size:1.15rem;margin-bottom:1.2rem;text-align:center;">
+            Për më shumë njoftime dhe lajme të reja, na ndiqni në Twitter!
+        </p>
+        <a href="https://x.com/filma350" target="_blank"
+           style="padding:0.7em 2em;border-radius:18px;border:none;background:#1da1f2;color:#fff;font-weight:bold;font-size:1.1em;cursor:pointer;box-shadow:0 2px 12px #0003;transition:transform 0.18s;"
+           onmouseover="this.style.transform='scale(1.08)';"
+           onmouseout="this.style.transform='scale(1)';">
+            Twitter
+        </a>
+    </div>
+    <script>
+        // Movies array (make sure there are NO trailing commas!)
+        const movies = [
+            {
+                title: "The Conjuring",
+                genre: "Horror",
+                image: "https://imgs.search.brave.com/iLzXTZEA6_WW6VrjLSMCQC29nOcdo5auo4M6zh-FQsQ/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tLm1l/ZGlhLWFtYXpvbi5j/b20vaW1hZ2VzL00v/TVY1Qk1qRXhORFF3/TWpNek5WNUJNbDVC/YW5CblhrRnRaVGN3/TVRRNE5UY3hPUUBA/Ll9WMV9RTDc1X1VY/ODIwXy5qcGc",
+                desc: "Një familje e New England ka takime të ngushta me shpirtrat e tmerrshëm që ndjekin shtëpinë e tyre në fermë. Për të hequr qafe pranitë e liga, familja është e detyruar të kërkojë ndihmën e hetuesve Ed (Patrick Wilson) dhe Lorraine Warren (Vera Farmiga), ekspertë të fenomeneve okulte.",
+                video: "https://voe.sx/e/xcjrpxk99tcy"
+            },
+            {
+                title: "Toy Story 3",
+                genre: "Animation",
+                image: "https://image.tmdb.org/t/p/w185/AbbXspMOwdvwWZgVN0nabZq03Ec.jpg",
+                desc: "Woody, Buzz dhe lodrat e tjera të Andit nuk janë luajtur me vite. Me Andin gati për të shkuar në kolegj, banda e gjen veten të lënë aksidentalisht në një qendër të keqe ditore. Lodrat duhet të bashkohen për të ikur dhe për t’u kthyer në shtëpi te Andi.",
+                video: "https://voe.sx/e/kqmksecnrxov"
+            },
+            {
+                title: "Toy Story 2",
+                genre: "Animation",
+                image: "https://image.tmdb.org/t/p/w185/eVGu0zsezaSCuN67zgNhzjeNI9Z.jpg",
+                desc: "Andi niset për në Kampin e Kaubojve, duke i lënë lodrat e tij në vullnetin e tyre. Gjërat kthehen në shpejtësi kur një koleksionist i ngulët lodrash i quajtur Al McWhiggen, pronar i Al’s Toy Barn rrëmben Woodin. Lodrat e Andit kryejnë një mision të guximshëm shpëtimi, Buzz Lightyear takohet me ndeshjen e tij dhe Woody duhet të vendosë se ku i përkasin vërtet ai dhe zemra e tij.",
+                video: "https://voe.sx/e/kauzorwfbhfi"
+            },
+            {
+                title: "Toy Story 4",
+                genre: "Animation",
+                image: "https://image.tmdb.org/t/p/w185/w9kR8qbmQ01HwnvK4alvnQ2ca0L.jpg",
+                desc: "Woody ka qenë gjithmonë i sigurt për vendin e tij në botë dhe se prioriteti i tij është të kujdeset për fëmijën e tij, qoftë Andy apo Bonnie. Por kur Bonnie shton një lodër të re të quajtur “Forky” në dhomën e saj, një aventurë udhëtimi së bashku me miqtë e vjetër dhe të rinj do t’i tregojë Woodit se sa e madhe mund të jetë bota për një lodër.",
+                video: "https://voe.sx/e/w6clyi4gu4cc"
+            },
+            {
+                title: "Rambo: Last Blood",
+                genre: "Action",
+                image: "https://image.tmdb.org/t/p/w185/kTQ3J8oTTKofAVLYnds2cHUz9KO.jpg",
+                desc: "Mbesa e John Rambo është rrëmbyer. Një veteran i luftës, Rambo është i detyruar të kalojë kufijtë midis Shteteve të Bashkuara dhe Meksikës për ta shpëtuar dhe për ta sjellë në shtëpi. Gjatë hulumtimit të tij, ai do të përballet me një nga kartelet më të pamëshirshme meksikane, të përfshirë në tregtinë e vaj.",
+                video: "https://voe.sx/e/eufonmsi5jfu"
+            },
+            {
+                title: "The Fast and the Furious: Tokyo Drift",
+                genre: "Action",
+                image: "https://image.tmdb.org/t/p/w185/cm2ffqb3XovzA5ZSzyN3jnn8qv0.jpg",
+                desc: "Një adoleshent amerikan dërgohet në Tokio, ku zbulon botën e garave të paligjshme të makinave drift dhe përfshihet në një konflikt të rrezikshëm me mafian japoneze.",
+                video: "https://voe.sx/e/ysznthx884by"
+            },
+            {
+                title: "Kung Fu Panda",
+                genre: "Animation",
+                image: "https://image.tmdb.org/t/p/w185/wWt4JYXTg5Wr3xBW2phBrMKgp3x.jpg",
+                desc: "Kur Lugina e Paqes kërcënohet, panda dembel Po zbulon fatin e tij si “i zgjedhuri” dhe stërvitet për t’u bërë një hero kung fu, por transformimi i dembelit të pahijshëm në një luftëtar trim nuk do të jetë i lehtë. I takon Mjeshtrit Shifu dhe Furious Five – Tigres, Crane, Mantis, Viper dhe Monkey – ta provojnë.",
+                video: "https://voe.sx/e/g4d8zzhhxl1b"
+            },
+            {
+                title: "Kung Fu Panda 2",
+                genre: "Animation",
+                image: "https://image.tmdb.org/t/p/w185/mtqqD00vB4PGRt20gWtGqFhrkd0.jpg",
+                desc: "Po tani po jeton ëndrrën e tij si Luftëtari i Dragoit, duke mbrojtur Luginën e Paqes së bashku me miqtë e tij dhe kolegët e tij mjeshtër të kung fu-së, Pesë të furishëm – Tigres, Crane, Mantis, Viper dhe Majmun. Por jeta e re e mahnitshme e Po kërcënohet nga shfaqja e një zuzari të frikshëm, i cili planifikon të përdorë një armë sekrete, të pandalshme për të pushtuar Kinën dhe për të shkatërruar kung fu-në. Po dhe The Furious Five i takon të udhëtojnë nëpër Kinë për të përballuar këtë kërcënim dhe për ta mposhtur atë. Por si mundet Po të ndalojë një armë që mund të ndalojë kung fu-në?",
+                video: "https://voe.sx/e/tcam0d1hfhdg"
+            },
+            {
+                title: "Venom: The Last Dance",
+                genre: "Action",
+                image: "https://image.tmdb.org/t/p/w185/k42Owka8v91trK1qMYwCQCNwJKr.jpg",
+                desc: "Eddie Brock dhe Venom përballen me sfidën e tyre më të madhe, duke luftuar kundër armiqve të rinj dhe duke vendosur fatin e tyre përfundimtar.",
+                video: "https://voe.sx/e/tjwwndbkrqws"
+            },
+            {
+                title: "Home Alone",
+                genre: "Comedy",
+                image: "https://image.tmdb.org/t/p/w185/9wSbe4CwObACCQvaUVhWQyLR5Vz.jpg",
+                desc: "Dy familje të afërmsh me fëmijë të shumtë nisen për në Paris ku do të kalojnë festat e Krishtlindjeve. Në furinë dhe konfuzionin e minutave të fundit Kevin i vogël është “harruar” në shtëpi, i cilësuar si më i guximshmi nga të gjithë fëmijët. Nëna përpiqet më kot të kontaktojë me të ose të kthehet, por djali duhet të kujdeset vetë. E bën shumë mirë: me fishekzjarre, katran dhe djallëzi të tjera i bën të ikin dy hajdutë që kanë hyrë në shtëpi.",
+                video: "https://voe.sx/e/032ma18jpgwy"
+            },
+            {
+                title: "Home Alone 2: Lost in New York",
+                genre: "Comedy",
+                image: "https://image.tmdb.org/t/p/w185/uuitWHpJwxD1wruFl2nZHIb4UGN.jpg",
+                desc: "Një tjetër gabim në familjen McCallister: ndërsa prindërit e tij shkojnë në Majami për Krishtlindje, Kevini i vogël e gjen veten vetëm në Nju Jork. Por ai shkon shumë mirë: jeton si një nabob në hotelin Plaza, ndeshet me dy kriminelët e filmit të parë përsëri dhe përsëri i redukton në një fillim të keq, duke kursyer kështu të ardhurat e epokës së madhe të lodrave Duncan. Më pas ai miqësohet me “zonjën e pëllumbave” në Central Park",
+                video: "https://voe.sx/e/indb4xbigw8u"
+            },
+            {
+                title: "Miraculous: Ladybug & Cat Noir, The Movie",
+                genre: "Animation",
+                image: "https://image.tmdb.org/t/p/w185/bBON9XO9Ek0DjRwMBnJNCwC96Cd.jpg",
+                desc: "Marinette dhe Adrien, dy adoleshentë në Paris, shndërrohen në superheronjtë Ladybug dhe Cat Noir për të shpëtuar qytetin nga një kërcënim i ri misterioz. Një aventurë plot aksion, magji dhe dashuri!",
+                video: "https://voe.sx/e/nqarprjqc9o6" 
+            },
+            {
+                title: "Terrifier",
+                genre: "Horror",
+                image: "https://image.tmdb.org/t/p/w185/6PQqC4SbY910VvyVad6mvsboILU.jpg",
+                desc: "Një vrasës i tmerrshëm i quajtur Art the Clown terrorizon dy gra në natën e Halloween-it. Një film horror i errët dhe i frikshëm.",
+                video: "https://voe.sx/e/4trzcgnb3yxx"
+            },
+            {
+                title: "Terrifier 2",
+                genre: "Horror",
+                image: "https://image.tmdb.org/t/p/w185/yB8BMtvzHlMmRT1WmTQnGv1bcOK.jpg",
+                desc: "Art the Clown kthehet për të terrorizuar një adoleshente dhe vëllain e saj të vogël në natën e Halloween-it. Më shumë gjak, më shumë tmerr!",
+                video: "https://voe.sx/e/n1hgeorwnk20"
+            },
+            {
+                title: "Terrifier 3",
+                genre: "Horror",
+                image: "https://image.tmdb.org/t/p/w185/63xYQj1BwRFielxsBDXvHIJyXVm.jpg",
+                desc: "Art the Clown rikthehet edhe një herë për të sjellë terror të paprecedentë në natën e Krishtlindjeve. Horror i pastër dhe i papërmbajtshëm.",
+                video: "https://voe.sx/e/rkcttrix8ks1"
+            },
+            {
+                title: "The Boss Baby",
+                genre: "Animation",
+                image: "https://image.tmdb.org/t/p/w185/unPB1iyEeTBcKiLg8W083rlViFH.jpg",
+                desc: "Një foshnjë e pazakontë, i veshur me kostum dhe që flet si një i rritur, bashkohet me vëllain e tij të madh për të ndaluar një komplot të keq që ka të bëjë me foshnjat dhe qentë.",
+                video: "https://voe.sx/e/fpoq6srtx8nw"
+            },
+            {
+                title: "One Piece: Strong World",
+                genre: "Animation",
+                image: "https://image.tmdb.org/t/p/w185/z9S39hH4IOX9Hmtn3zho3Wdqem8.jpg",
+                desc: "Luffy dhe ekuipazhi i tij përballen me një pirat legjendar që ka kapur Namin. Një aventurë e jashtëzakonshme plot aksion dhe humor!",
+                video: "https://voe.sx/e/acczrz6a8n8e"
+            },
+            {
+                title: "One Piece: Stampede",
+                genre: "Animation",
+                image: "https://image.tmdb.org/t/p/w185/4E2lyUGLEr3yH4q6kJxPkQUhX7n.jpg",
+                desc: "Ekuipazhi i Straw Hat merr pjesë në Festivalin e Piratëve, ku përballen me kundërshtarë të rrezikshëm dhe një thesar legjendar.",
+                video: "https://voe.sx/e/i9h1cvvyllrw"
+            },
+            {
+                title: "One Piece Film Red",
+                genre: "Animation",
+                image: "https://image.tmdb.org/t/p/w185/m80kPdrmmtEh9wlLroCp0bwUGH0.jpg",
+                desc: "Një festival muzikor i jashtëzakonshëm ku Luffy dhe miqtë e tij zbulojnë sekrete të reja dhe përballen me sfida të papritura.",
+                video: "https://voe.sx/e/fjydwso66zu7"
+            },
+            {
+                title: "The Conjuring 2",
+                genre: "Horror",
+                image: "https://image.tmdb.org/t/p/w185/zEqyD0SBt6HL7W9JQoWwtd5Do1T.jpg",
+                desc: "Ed dhe Lorraine Warren udhëtojnë në Londër për të ndihmuar një nënë të vetme dhe katër fëmijët e saj që janë të terrorizuar nga shpirtrat e këqij në shtëpinë e tyre.",
+                video: "https://voe.sx/e/dlnk1alnfkqa"
+            },
+            {
+                title: "The Conjuring: The Devil Made Me Do It",
+                genre: "Horror",
+                image: "https://image.tmdb.org/t/p/w185/xbSuFiJbbBWCkyCCKIMfuDCA4yV.jpg",
+                desc: "Ed dhe Lorraine Warren hetojnë një rast të vrasjes ku i dyshuari pretendon se është pushtuar nga një demon. Një histori e tmerrshme e bazuar në ngjarje të vërteta.",
+                video: "https://voe.sx/e/8k2nlfot9xr1"
+            },
+            {
+                title: "Spider-Man",
+                genre: "Action",
+                image: "https://image.tmdb.org/t/p/w185/rweIrveL43TaxUN0akQEaAXL6x0.jpg",
+                desc: "Peter Parker fiton fuqi të jashtëzakonshme pas një pickimi nga një merimangë dhe përballet me Green Goblin në betejën e tij të parë si Spider-Man.",
+                video: "https://voe.sx/e/gwphaghbmd0a"
+            },
+            {
+                title: "Spider-Man 2",
+                genre: "Action",
+                image: "https://image.tmdb.org/t/p/w185/olxpyq9kJAZ2NU1siLshhhXEPR7.jpg",
+                desc: "Spider-Man përballet me Dr. Octopus, një shkencëtar i çmendur me tentakula mekanike, ndërsa lufton për të balancuar jetën e tij personale dhe heroike.",
+                video: "https://voe.sx/e/cxifitryok85"
+            },
+            {
+                title: "Spider-Man 3",
+                genre: "Action",
+                image: "https://image.tmdb.org/t/p/w185/sqZKCRYGovZ8aN99VVJSdL8Ja9k.jpg",
+                desc: "Peter Parker përballet me Venom, Sandman dhe Green Goblin, duke luftuar demonët e tij të brendshëm dhe armiqtë e jashtëm.",
+                video: "https://voe.sx/e/01aw21az0ddg"
+            },
+            {
+                title: "The Amazing Spider-Man",
+                genre: "Action",
+                image: "https://image.tmdb.org/t/p/w185/dQ8TOCYgP9pzQvSb1cmaalYqdb5.jpg",
+                desc: "Peter Parker zbulon të kaluarën e prindërve të tij dhe përballet me Lizard, një shkencëtar që shndërrohet në një përbindësh.",
+                video: "https://voe.sx/e/ndfgedis3egv"
+            },
+            {
+                title: "The Amazing Spider-Man 2",
+                genre: "Action",
+                image: "https://image.tmdb.org/t/p/w185/h4NC0pkqvDX7Q6TI3PyW4NJKEYi.jpg",
+                desc: "Spider-Man përballet me Electro dhe Green Goblin, duke u përpjekur të shpëtojë qytetin dhe të mbrojë të dashurit e tij.",
+                video: "https://voe.sx/e/r9qqe7oc6or8"
+            },
+            {
+                title: "Spider-Man: No Way Home",
+                genre: "Action",
+                image: "https://image.tmdb.org/t/p/w185/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg",
+                desc: "Spider-Man bashkohet me Spider-Man nga universet e tjera për të përballur armiqtë klasikë dhe për të shpëtuar botën nga kaosi multiversal.",
+                video: "https://voe.sx/e/yy3ipz82dnsr"
+            },
+            {
+                title: "Deep Cover",
+                genre: "Comedy",
+                image: "https://image.tmdb.org/t/p/w185/euM8fJvfH28xhjGy25LiygxfkWc.jpg",
+                desc: "Deep Cover është një komedi plot aksion dhe situata të papritura, ku një polic nën mbulim përfshihet në botën e krimit. Filmi sjell humor të zgjuar, karaktere të veçanta dhe një rrjedhë ngjarjesh që të mbajnë të mbërthyer nga fillimi deri në fund. Një zgjedhje e shkëlqyer për ata që duan të qeshin dhe të shijojnë një histori të pazakontë!",
+                video: "https://voe.sx/e/ec4lkxpqbcjc" 
+            }
+        ];
+
+        let currentGenre = 'All';
+        let currentSearch = '';
+
+        function renderMovies(filter) {
+            currentGenre = filter || currentGenre;
+            const list = document.getElementById('movies-list');
+            list.innerHTML = '';
+            let filtered = currentGenre === 'All' ? movies : movies.filter(m => m.genre === currentGenre);
+            if (currentSearch.trim() !== '') {
+                filtered = filtered.filter(m => m.title.toLowerCase().includes(currentSearch.toLowerCase()));
+            }
+            filtered.forEach(movie => {
+                const card = document.createElement('div');
+                card.className = 'movie-card';
+                card.style.position = "relative";
+                card.innerHTML = `
+                    <img src="${movie.image}" alt="${movie.title}">
+                    <div class="movie-info">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div class="movie-title">${movie.title}</div>
+                            <button class="fav-heart-btn" data-fav="${movie.title}" onclick="toggleFav('${movie.title}')"
+                                style="
+                                    background: none;
+                                    border: none;
+                                    font-size: 1.5rem;
+                                    color: #e50914;
+                                    cursor: pointer;
+                                    margin-left: 0.5em;
+                                    transition: color 0.18s;
+                                "
+                                title="Add to favorites">${isFav(movie.title) ? "♥" : "♡"}</button>
+                        </div>
+                        <div class="movie-genre">${movie.genre}</div>
+                        <div class="movie-desc">${movie.desc}</div>
+                        <button class="play-btn" onclick="playMovie('${movie.title}')">Play</button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+            updateAllFavHearts();
+        }
+
+        function filterMovies(genre) {
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            const btn = Array.from(document.querySelectorAll('.category-btn')).find(b => b.textContent.trim().includes(genre));
+            if (btn) btn.classList.add('active');
+            renderMovies(genre);
+            document.getElementById('category-menu').style.display = 'none';
+            document.getElementById('cat-arrow').style.transform = 'rotate(0deg)';
+        }
+
+        function playMovie(title) {
+            const movie = movies.find(m => m.title === title);
+            const video = document.getElementById('modal-video');
+            const yt = document.getElementById('modal-yt');
+            const img = document.getElementById('modal-img');
+            document.getElementById('modal-title').textContent = movie.title;
+            document.getElementById('modal-desc').textContent = movie.desc;
+            img.src = movie.image;
+            img.style.display = 'block';
+            video.style.display = 'none';
+            yt.style.display = 'none';
+            video.src = '';
+            yt.src = '';
+
+            if (movie.video) {
+                if (movie.video.includes('youtu')) {
+                    let embedUrl = movie.video.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/');
+                    embedUrl = embedUrl.split('?')[0] + '?autoplay=1';
+                    yt.src = embedUrl;
+                    yt.style.display = 'block';
+                    img.style.display = 'none';
+                } else if (movie.video.includes('voe.sx')) {
+                    yt.src = movie.video;
+                    yt.style.display = 'block';
+                    img.style.display = 'none';
+                } else {
+                    video.src = movie.video;
+                    video.style.display = 'block';
+                    video.currentTime = 0;
+                    video.play();
+                    img.style.display = 'none';
+                }
+            }
+            document.getElementById('movie-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('movie-modal').style.display = 'none';
+            const video = document.getElementById('modal-video');
+            const yt = document.getElementById('modal-yt');
+            video.pause();
+            video.style.display = 'none';
+            video.src = '';
+            yt.style.display = 'none';
+            yt.src = '';
+            document.getElementById('modal-img').style.display = 'block';
+        }
+
+        function searchMovies() {
+            currentSearch = document.getElementById('search-input').value;
+            renderMovies(currentGenre);
+        }
+
+        // Hamburger menu logic
+        document.getElementById('menu-toggle').onclick = function() {
+            const menuToggle = document.getElementById('menu-toggle');
+            const sideMenu = document.getElementById('side-menu');
+            menuToggle.classList.add('animated');
+            setTimeout(() => {
+                sideMenu.style.display = 'block';
+                setTimeout(() => sideMenu.classList.add('open'), 10);
+            }, 120);
+            setTimeout(() => menuToggle.classList.remove('animated'), 400);
+        };
+        function closeMenu() {
+            const sideMenu = document.getElementById('side-menu');
+            const menuToggle = document.getElementById('menu-toggle');
+            sideMenu.classList.remove('open');
+            menuToggle.classList.add('animated');
+            setTimeout(() => {
+                sideMenu.style.display = 'none';
+                menuToggle.classList.remove('animated');
+            }, 300);
+        }
+
+        // Theme switch logic
+        function setTheme(theme) {
+            if (theme === 'white') {
+                document.body.style.background = "#fff";
+                document.body.style.color = "#181818";
+            } else {
+                document.body.style.background = "linear-gradient(120deg, #181818 0%, #232323 40%, #e50914 100%)";
+                document.body.style.color = "#fff";
+            }
+            closeMenu();
+        }
+
+        // --- Favorite logic ---
+        function getFavs() {
+            return JSON.parse(localStorage.getItem('fav_movies') || '[]');
+        }
+        function setFavs(favs) {
+            localStorage.setItem('fav_movies', JSON.stringify(favs));
+        }
+        function isFav(title) {
+            return getFavs().includes(title);
+        }
+        function toggleFav(title) {
+            let favs = getFavs();
+            if (favs.includes(title)) {
+                favs = favs.filter(t => t !== title);
+            } else {
+                favs.push(title);
+            }
+            setFavs(favs);
+            updateFavList();
+            renderMovies(currentGenre);
+        }
+        function updateFavList() {
+            const favs = getFavs();
+            const favList = document.getElementById('fav-list');
+            const favEmpty = document.getElementById('fav-empty');
+            favList.innerHTML = '';
+            if (favs.length === 0) {
+                favEmpty.style.display = '';
+                return;
+            }
+            favEmpty.style.display = 'none';
+            favs.forEach(title => {
+                const movie = movies.find(m => m.title === title);
+                if (movie) {
+                    const div = document.createElement('div');
+                    div.style.display = 'flex';
+                    div.style.alignItems = 'center';
+                    div.style.marginBottom = '0.7rem';
+                    div.innerHTML = `
+                        <img src="${movie.image}" alt="${movie.title}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;margin-right:0.7rem;">
+                        <span style="flex:1;">${movie.title}</span>
+                        <button onclick="toggleFav('${movie.title}')" style="background:none;border:none;font-size:1.3rem;color:#e50914;cursor:pointer;" title="Remove from favorites">♥</button>
+                    `;
+                    favList.appendChild(div);
+                }
+            });
+        }
+        function toggleFavBox() {
+            const box = document.getElementById('fav-box');
+            box.style.display = box.style.display === 'none' ? 'block' : 'none';
+            updateFavList();
+        }
+        function updateAllFavHearts() {
+            document.querySelectorAll('.fav-heart-btn').forEach(btn => {
+                btn.innerHTML = isFav(btn.getAttribute('data-fav')) ? "♥" : "♡";
+            });
+        }
+        document.addEventListener('click', function(e) {
+            // Hide fav box if clicked outside
+            const favBox = document.getElementById('fav-box');
+            const favBtn = document.querySelector('#side-menu button[onclick="toggleFavBox()"]');
+            if (favBox && favBox.style.display === 'block' && !favBox.contains(e.target) && !favBtn.contains(e.target)) {
+                favBox.style.display = 'none';
+            }
+        });
+
+        // --- Auth/Profile Logic ---
+function renderAuthSection() {
+    const authSection = document.getElementById('auth-section');
+    const user = localStorage.getItem('logged_user');
+    if (!user) {
+        authSection.innerHTML = `
+            <button onclick="showAuth('login')" style="margin:1.2em 0 0.7em 0; padding:0.6rem 1.5rem; border-radius:18px; border:none; background:#ffe066; color:#e50914; font-weight:bold; font-size:1rem; cursor:pointer; width:100%;">Login</button>
+            <button onclick="showAuth('signup')" style="margin-bottom:1.5em; padding:0.6rem 1.5rem; border-radius:18px; border:none; background:#e50914; color:#fff; font-weight:bold; font-size:1rem; cursor:pointer; width:100%;">Sign Up</button>
+        `;
+    } else {
+        authSection.innerHTML = `
+            <button onclick="showProfile()" style="margin:1.2em 0 0.7em 0; padding:0.6rem 1.5rem; border-radius:18px; border:none; background:#ffe066; color:#e50914; font-weight:bold; font-size:1rem; cursor:pointer; width:100%;">View Profile</button>
+        `;
+    }
+}
+function showAuth(type) {
+    // Reuse or create modal for login/signup
+    let modal = document.getElementById('auth-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'auth-modal';
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <form id="auth-form" style="background:#232323; padding:2em 2.5em; border-radius:18px; box-shadow:0 4px 24px #000a; text-align:center; min-width:260px;">
+            <h2 id="auth-title" style="color:#ffe066; margin-bottom:1em;">${type === 'signup' ? 'Sign Up' : 'Login'}</h2>
+            <input id="auth-user" type="text" placeholder="Username" required style="margin-bottom:1em; width:90%; padding:0.7em; border-radius:8px; border:none; font-size:1.1em;"><br>
+            <input id="auth-pass" type="password" placeholder="Password" required style="margin-bottom:1em; width:90%; padding:0.7em; border-radius:8px; border:none; font-size:1.1em;"><br>
+            <button type="submit" style="padding:0.7em 2em; border-radius:12px; border:none; background:#e50914; color:#fff; font-weight:bold; font-size:1em; cursor:pointer;">Submit</button>
+            <button type="button" onclick="closeAuth()" style="margin-left:1em; padding:0.7em 1.5em; border-radius:12px; border:none; background:#ffe066; color:#e50914; font-weight:bold; font-size:1em; cursor:pointer;">Cancel</button>
+            <div id="auth-msg" style="color:#ffe066; margin-top:1em; min-height:1.5em;"></div>
+        </form>
+    `;
+    document.getElementById('auth-form').onsubmit = function(e) {
+        e.preventDefault();
+        const user = document.getElementById('auth-user').value;
+        const pass = document.getElementById('auth-pass').value;
+        let msg = '';
+        if (type === 'signup') {
+            if (localStorage.getItem('user_' + user)) msg = 'User exists!';
+            else { localStorage.setItem('user_' + user, pass); msg = 'Signed up!'; }
+        } else {
+            if (localStorage.getItem('user_' + user) === pass) msg = 'Login successful!';
+            else msg = 'Wrong credentials!';
+        }
+        document.getElementById('auth-msg').textContent = msg;
+        if (msg.includes('successful') || msg === 'Signed up!') {
+            localStorage.setItem('logged_user', user);
+            setTimeout(() => {
+                closeAuth();
+                renderAuthSection();
+            }, 1200);
+        }
+    };
+}
+function closeAuth() {
+    const modal = document.getElementById('auth-modal');
+    if (modal) modal.style.display = 'none';
+}
+function showProfile() {
+    const user = localStorage.getItem('logged_user');
+    if (!user) return;
+    document.getElementById('profile-modal').style.display = 'flex';
+    document.getElementById('profile-username').textContent = user;
+    // Load profile pic if exists
+    const pic = localStorage.getItem('profile_pic_' + user);
+    document.getElementById('profile-pic').src = pic || `https://ui-avatars.com/api/?name=${encodeURIComponent(user)}&background=ffe066&color=e50914&rounded=true&size=128`;
+}
+function closeProfile() {
+    document.getElementById('profile-modal').style.display = 'none';
+}
+function signOut() {
+    localStorage.removeItem('logged_user');
+    closeProfile();
+    renderAuthSection();
+}
+document.getElementById('profile-pic-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        const user = localStorage.getItem('logged_user');
+        if (user) {
+            localStorage.setItem('profile_pic_' + user, evt.target.result);
+            document.getElementById('profile-pic').src = evt.target.result;
+        }
+    };
+    reader.readAsDataURL(file);
+});
+
+        // Show/hide side menu and update auth section
+        document.getElementById('menu-toggle').onclick = function() {
+            const menuToggle = document.getElementById('menu-toggle');
+            const sideMenu = document.getElementById('side-menu');
+            menuToggle.classList.add('animated');
+            setTimeout(() => {
+                sideMenu.style.display = 'block';
+                setTimeout(() => sideMenu.classList.add('open'), 10);
+                renderAuthSection();
+            }, 120);
+            setTimeout(() => menuToggle.classList.remove('animated'), 400);
+        };
+
+        // Add sign out button at the bottom of side menu if logged in
+        function updateSignOutBtn() {
+            const user = localStorage.getItem('logged_user');
+            let btn = document.getElementById('side-signout-btn');
+            if (user) {
+                if (!btn) {
+                    btn = document.createElement('button');
+                    btn.id = 'side-signout-btn';
+                    btn.textContent = 'Sign Out';
+                    btn.style = "margin-top:2.5em; padding:0.6rem 1.5rem; border-radius:18px; border:none; background:#e50914; color:#fff; font-weight:bold; font-size:1rem; cursor:pointer; width:100%;";
+                    btn.onclick = signOut;
+                    document.getElementById('side-menu').appendChild(btn);
+                }
+                btn.style.display = 'block';
+            } else if (btn) {
+                btn.style.display = 'none';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMovies('All');
+            updateFavList();
+            updateSignOutBtn();
+        });
+        document.addEventListener('click', function(e) {
+            // Hide fav box if clicked outside
+            const favBox = document.getElementById('fav-box');
+            const favBtn = document.querySelector('#side-menu button[onclick="toggleFavBox()"]');
+            if (favBox && favBox.style.display === 'block' && !favBox.contains(e.target) && !favBtn.contains(e.target)) {
+                favBox.style.display = 'none';
+            }
+        });
+        document.getElementById('welcome-btn').onclick = function() {
+            const overlay = document.getElementById('welcome-overlay');
+            overlay.style.opacity = 0;
+            setTimeout(() => overlay.style.display = 'none', 700);
+        };
+        setInterval(() => {
+            const logo = document.getElementById('main-logo');
+            const fimg = logo.querySelector('.logo-fimg img');
+            const text = logo.querySelector('.logo-text');
+            // Animate text
+            text.style.animation = "logoWave 2.2s cubic-bezier(.68,-0.55,.27,1.55)";
+            // Animate image (like popcornJump)
+            fimg.style.animation = "popcornJump 1.2s cubic-bezier(.68,-0.55,.27,1.55)";
+            setTimeout(() => {
+                text.style.animation = "";
+                fimg.style.animation = "";
+            }, 2200);
+        }, 5000);
+    </script>
+</body>
+</html>
